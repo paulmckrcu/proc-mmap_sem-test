@@ -1,0 +1,22 @@
+1.	C-language process remaps its memory incessantly, complaining
+	if any given mapping or unmapping operation takes too long
+	(say longer than 5 seconds).
+
+	a.	Use MAP_ANONYMOUS to avoid needing to create a file.
+		Use MAP_PRIVATE.  Use MAP_POPULATE.  Set fd to -1.
+
+	b.	Do an initial large mapping to establish the area
+		of the address space that will be used.
+		
+	c.	Use MAP_FIXED for mappings in the loop.
+
+2.	Script puts #1 in background, niced moderately.
+
+3.	Same script creates a child that scans /proc/PID/smaps
+	incessantly.  This is niced as low as possible.
+
+4.	Script creates one CPU-bound process per CPU, running at
+	highest possible niceness.  These terminate after some time,
+	say ten seconds.  When they terminate, the top-level script
+	waits some time (again, say ten seconds) then creates a
+	new set.
