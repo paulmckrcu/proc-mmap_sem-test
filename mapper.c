@@ -6,9 +6,11 @@
 #include <stdint.h>
 #include <sys/mman.h>
 
-#define MAP_REGION_SIZE (1024 * 1024 * 1024)
+#define MAP_REGION_SIZE (128 * 1024 * 1024)
 
 int duration = 10;
+void *mrp;
+int pagesize;
 
 void usage(int argc, char *argv[])
 {
@@ -29,23 +31,53 @@ long long curtime2ns(void)
 	return curspec.tv_sec * 1000LL * 1000LL * 1000LL + curspec.tv_nsec;
 }
 
-int remapit(void)
+int remapit(int argc, char *argv[])
 {
+	void *addr;
 	long long curtime;
+	long nmaps;
+	long nunmaps;
+	unsigned long offset;
+	void *retaddr;
 	int retval;
 	long long stoptime;
 
 	stoptime = curtime2ns() + duration * 1000LL * 1000LL * 1000LL;
 
-	while (curtime2ns() < stoptime)
-		sleep(1);
+	while (curtime2ns() < stoptime) {
+		offset = random() & (MAP_REGION_SIZE - 1) & ~(pagesize - 1);
+		addr = ((char *)mrp) + offset;
+		if (random() & 0x8) {
+			retaddr = mmap(addr, pagesize, PROT_WRITE,
+				       MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE,
+				       -1, 0);
+			if (retaddr == MAP_FAILED) {
+				retval = errno;
+				perror("mmap fixed");
+				exit(retval);
+			}
+			if (retaddr != addr) {
+				fprintf(stderr, "Remap address mismatch: %p vs. %p\n",
+					retaddr, addr);
+				exit(-1);
+			}
+			nmaps++;
+		} else {
+			if (munmap(addr, pagesize)) {
+				retval = errno;
+				perror("munmap");
+				exit(retval);
+			}
+			nunmaps++;
+		}
+	}
+	printf("%s: duration: %d nmaps: %ld nunmaps: %ld\n", argv[0], duration, nmaps, nunmaps);
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
 	int retval = 0;
-	void *mrp;
 
 	srandom(time(NULL));
 
@@ -61,6 +93,7 @@ int main(int argc, char *argv[])
 	}
 	printf("duration = %d\n", duration);
 
+	pagesize = sysconf(_SC_PAGESIZE);
 	mrp = mmap(NULL, MAP_REGION_SIZE, PROT_WRITE,
 		   MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE, -1, 0);
 	if (mrp == MAP_FAILED) {
@@ -69,7 +102,7 @@ int main(int argc, char *argv[])
 		return retval;
 	}
 	printf("Map region at %#lx\n", (uintptr_t)mrp);
-	retval = remapit();
+	retval = remapit(argc, argv);
 	return retval;
 }
 
