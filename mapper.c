@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <sys/mman.h>
 
-#define MAP_REGION_SIZE (128 * 1024 * 1024)
+#define MAP_REGION_SIZE (128 * 1024 * 1024) // sysctl vm.max_map_count for larger.
 
 int duration = 10;
 void *mrp;
@@ -71,7 +71,8 @@ int remapit(int argc, char *argv[])
 			nunmaps++;
 		}
 	}
-	printf("%s: duration: %d nmaps: %ld nunmaps: %ld\n", argv[0], duration, nmaps, nunmaps);
+	printf("%s: Map region: %#lx duration: %d nmaps: %ld nunmaps: %ld\n",
+	       argv[0], (uintptr_t)mrp, duration, nmaps, nunmaps);
 	return 0;
 }
 
@@ -101,7 +102,6 @@ int main(int argc, char *argv[])
 		perror("initial mmap");
 		return retval;
 	}
-	printf("Map region at %#lx\n", (uintptr_t)mrp);
 	retval = remapit(argc, argv);
 	return retval;
 }
