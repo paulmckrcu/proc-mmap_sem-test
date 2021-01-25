@@ -140,8 +140,8 @@ int main(int argc, char *argv[])
 	}
 
 	pagesize = sysconf(_SC_PAGESIZE);
-	printf("%s duration: %d region size (pages): %ld\n",
-	       argv[0], duration, region_size / pagesize);
+	printf("%s PID: %d duration: %d region size (pages): %ld\n",
+	       argv[0], getpid(), duration, region_size / pagesize);
 	mrp = mmap(NULL, MAP_REGION_SIZE, PROT_WRITE,
 		   MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE, -1, 0);
 	if (mrp == MAP_FAILED) {
