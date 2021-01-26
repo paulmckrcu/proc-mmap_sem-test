@@ -34,7 +34,7 @@ sleep 1
 i=0
 while test $i -lt $nbusytasks
 do
-	taskset -c 2 nice -n 10 ./busywait.sh &
+	taskset -c 2 ./busywait.sh $mapper_pid &
 	busy_pids="$busy_pids $!"
 	i=$((i+1))
 done
