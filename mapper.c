@@ -32,7 +32,6 @@ long long curtime2ns(void)
 int remapit(int argc, char *argv[])
 {
 	void *addr;
-	long long curtime;
 	long nmaps = 0;
 	long nunmaps = 0;
 	unsigned long offset;
@@ -46,7 +45,6 @@ int remapit(int argc, char *argv[])
 	stoptime = curtime2ns() + duration * 1000LL * 1000LL * 1000LL;
 
 	while (curtime2ns() < stoptime) {
-		// @@@ Track duration of longest operation.
 		offset = random() & (MAP_REGION_SIZE - 1) & ~(pagesize - 1);
 		addr = ((char *)mrp) + offset;
 		opbegin = curtime2ns();
