@@ -7,7 +7,7 @@ then
 	echo Need at least two CPUs, and ncpus = $ncpus
 	exit 1
 fi
-nbusytasks=5
+nbusytasks=20
 
 T=/tmp/proc-vs-map.sh.$$
 trap 'rm -rf $T' 0 2
