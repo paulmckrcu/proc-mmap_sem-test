@@ -36,6 +36,9 @@ int remapit(int argc, char *argv[])
 	long nmaps;
 	long nunmaps;
 	unsigned long offset;
+	long long opbegin;
+	long long opdur;
+	long long opmax = 0LL;
 	void *retaddr;
 	int retval;
 	long long stoptime;
@@ -43,8 +46,10 @@ int remapit(int argc, char *argv[])
 	stoptime = curtime2ns() + duration * 1000LL * 1000LL * 1000LL;
 
 	while (curtime2ns() < stoptime) {
+		// @@@ Track duration of longest operation.
 		offset = random() & (MAP_REGION_SIZE - 1) & ~(pagesize - 1);
 		addr = ((char *)mrp) + offset;
+		opbegin = curtime2ns();
 		if (random() & 0x8) {
 			retaddr = mmap(addr, pagesize, PROT_WRITE,
 				       MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE,
@@ -68,9 +73,12 @@ int remapit(int argc, char *argv[])
 			}
 			nunmaps++;
 		}
+		opdur = curtime2ns() - opbegin;
+		if (opdur > opmax)
+			opmax = opdur;
 	}
-	printf("%s: Map region: %#lx duration: %d nmaps: %ld nunmaps: %ld\n",
-	       argv[0], (uintptr_t)mrp, duration, nmaps, nunmaps);
+	printf("%s: Map region: %#lx duration: %d nmaps: %ld nunmaps: %ld opmax: %.3f ms\n",
+	       argv[0], (uintptr_t)mrp, duration, nmaps, nunmaps, opmax / 1000. / 1000.);
 	return 0;
 }
 
