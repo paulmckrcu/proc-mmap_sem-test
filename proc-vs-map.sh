@@ -19,8 +19,9 @@ then
 	exit 1
 fi
 nbusytasks=20
-cpumapper=0
 cpubusytasks=2
+cpumapper=0
+cpuscript=1
 
 usage () {
 	echo "Usage: $scriptname optional arguments:"
@@ -47,6 +48,15 @@ do
 	--cpumapper)
 		cpumapper=$2
 		if echo $cpumapper | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
+	--cpuscript)
+		cpuscript=$2
+		if echo $cpuscript | grep -q '[^0-9]'
 		then
 			echo Error: $1 $2 non-numeric.
 			usage
@@ -89,7 +99,7 @@ mkdir $T
 echo Starting ${duration}-second test at `date`.
 
 # Launch the mapper.
-maskmapper="`echo $cpumapper |
+maskmapper="`echo $cpuscript |
 	     awk '{ z = ""; for (i = 1; 4 * i <= $1; i++) z = z "0"; print "0x" 2 ^ ($1 % 4) z }'`"
 taskset -p $maskmapper $$
 taskset -c $cpumapper ./mapper --duration $duration > $T/mapper.out &
