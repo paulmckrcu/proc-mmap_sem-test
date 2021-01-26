@@ -9,7 +9,9 @@
 #
 # Authors: Paul E. McKenney <paulmck@kernel.org>
 
-duration=${1-5}
+scriptname=$0
+args="$*"
+duration=10
 ncpus="`lscpu | grep '^CPU(s):' | awk '{ print $2 }'`"
 if test "$ncpus" -lt 2
 then
@@ -17,6 +19,68 @@ then
 	exit 1
 fi
 nbusytasks=20
+cpumapper=0
+cpubusytasks=2
+
+usage () {
+	echo "Usage: $scriptname optional arguments:"
+	echo "       --cpubusytasks CPU# (default 2)"
+	echo "       --cpumapper CPU# (default 0)"
+	echo "       --duration seconds (default 10)"
+	echo "       --help"
+	echo "       --nbusytasks # (default 20)"
+	exit 1
+}
+
+while test $# -gt 0
+do
+	case "$1" in
+	--cpubusytasks)
+		cpubusytasks=$2
+		if echo $cpubusytasks | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
+	--cpumapper)
+		cpumapper=$2
+		if echo $cpumapper | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
+	--duration)
+		duration=$2
+		if echo $duration | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
+	--help|-h)
+		usage
+		;;
+	--nbusytasks)
+		nbusytasks=$2
+		if echo $nbusytasks | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
+	*)
+		echo Unknown argument $1
+		usage
+		;;
+	esac
+	shift
+done
 
 T=/tmp/proc-vs-map.sh.$$
 trap 'rm -rf $T' 0 2
@@ -25,8 +89,10 @@ mkdir $T
 echo Starting ${duration}-second test at `date`.
 
 # Launch the mapper.
-taskset -p 0x1 $$
-taskset -c 0 ./mapper --duration $duration > $T/mapper.out &
+maskmapper="`echo $cpumapper |
+	     awk '{ z = ""; for (i = 1; 4 * i <= $1; i++) z = z "0"; print "0x" 2 ^ ($1 % 4) z }'`"
+taskset -p $maskmapper $$
+taskset -c $cpumapper ./mapper --duration $duration > $T/mapper.out &
 mapper_pid=$!
 
 # Launch the /proc scanners at low priority.
@@ -34,7 +100,7 @@ busy_pids=
 i=0
 while test $i -lt $nbusytasks
 do
-	taskset -c 2 nice -n 15 ./scanpid.sh $mapper_pid > $T/scanpid.sh.$i.out 2>&1 &
+	taskset -c $cpubusytasks nice -n 15 ./scanpid.sh $mapper_pid > $T/scanpid.sh.$i.out 2>&1 &
 	busy_pids="$busy_pids $!"
 	i=$((i+1))
 done
@@ -45,7 +111,7 @@ sleep 1
 i=0
 while test $i -lt $nbusytasks
 do
-	taskset -c 2 ./busywait.sh $mapper_pid &
+	taskset -c $cpubusytasks ./busywait.sh $mapper_pid &
 	busy_pids="$busy_pids $!"
 	i=$((i+1))
 done
