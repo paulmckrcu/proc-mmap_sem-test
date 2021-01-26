@@ -1,6 +1,6 @@
 #!/bin/bash
 
-duration=5
+duration=${1-5}
 ncpus="`lscpu | grep '^CPU(s):' | awk '{ print $2 }'`"
 
 T=/tmp/proc-vs-map.sh.$$
