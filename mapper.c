@@ -33,8 +33,8 @@ int remapit(int argc, char *argv[])
 {
 	void *addr;
 	long long curtime;
-	long nmaps;
-	long nunmaps;
+	long nmaps = 0;
+	long nunmaps = 0;
 	unsigned long offset;
 	long long opbegin;
 	long long opdur;
