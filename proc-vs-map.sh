@@ -1,4 +1,13 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0+
+#
+# Check whether /proc scans can interfere with mapping operations.
+#
+# Usage: proc-vs-map.sh [ options ]
+#
+# Copyright (C) Facebook, 2021
+#
+# Authors: Paul E. McKenney <paulmck@kernel.org>
 
 duration=${1-5}
 ncpus="`lscpu | grep '^CPU(s):' | awk '{ print $2 }'`"
@@ -15,11 +24,13 @@ mkdir $T
 
 echo Starting ${duration}-second test at `date`.
 
+# Launch the mapper.
 taskset -p 0x1 $$
 taskset -c 0 ./mapper --duration $duration > $T/mapper.out &
 mapper_pid=$!
 echo "(Expect $nbusytasks complaints from scanpid.sh about /proc/$mapper_pid/smaps at end of test.)"
 
+# Launch the /proc scanners at low priority.
 busy_pids=
 i=0
 while test $i -lt $nbusytasks
@@ -31,6 +42,7 @@ done
 
 sleep 1
 
+# Launch higher-priority busy-waiters.
 i=0
 while test $i -lt $nbusytasks
 do
@@ -39,6 +51,9 @@ do
 	i=$((i+1))
 done
 
+# Normally, procscan.sh and busywait.sh will stop as soon as the mapper
+# process stops because its /proc/PID/smaps file will vanish.  But if
+# more convincing is needed, this code does that convincing.
 sleep $duration
 if test -f /proc/$mapper_pid/smaps
 then
@@ -51,4 +66,5 @@ then
 	fi
 fi
 
+# Dump the statistics.
 cat $T/mapper.out

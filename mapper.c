@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Program to map a large region of anonymous memory, then repeatedly
+ * unmap and remap one-page portions of that region.  This is used with
+ * a set of scripts to determine whether /proc scan can block mapping
+ * operations.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,6 +24,7 @@ long region_size = MAP_REGION_SIZE;
 void *mrp;
 int pagesize;
 
+// Get current time in nanoseconds since some random time in the past.
 long long curtime2ns(void)
 {
 	struct timespec curspec;
@@ -29,6 +38,8 @@ long long curtime2ns(void)
 	return curspec.tv_sec * 1000LL * 1000LL * 1000LL + curspec.tv_nsec;
 }
 
+// Repeatedly unmap and remap pages in the mapped region, tracking the
+// duration in nanoseconds of the longest-duration operation.
 int remapit(int argc, char *argv[])
 {
 	void *addr;
@@ -158,7 +169,3 @@ int main(int argc, char *argv[])
 	retval = remapit(argc, argv);
 	return retval;
 }
-
-// How to stop?
-// 1. Catch a signal.
-// 2. Take a run duration as a command-line argument.
