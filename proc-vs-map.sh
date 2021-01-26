@@ -28,14 +28,13 @@ echo Starting ${duration}-second test at `date`.
 taskset -p 0x1 $$
 taskset -c 0 ./mapper --duration $duration > $T/mapper.out &
 mapper_pid=$!
-echo "(Expect $nbusytasks complaints from scanpid.sh about /proc/$mapper_pid/smaps at end of test.)"
 
 # Launch the /proc scanners at low priority.
 busy_pids=
 i=0
 while test $i -lt $nbusytasks
 do
-	taskset -c 2 nice -n 15 ./scanpid.sh $mapper_pid &
+	taskset -c 2 nice -n 15 ./scanpid.sh $mapper_pid > $T/scanpid.sh.$i.out 2>&1 &
 	busy_pids="$busy_pids $!"
 	i=$((i+1))
 done
@@ -67,4 +66,14 @@ then
 fi
 
 # Dump the statistics.
+for i in $T/scanpid.sh.*.out
+do
+	head -n -1 $i > $T/scanpid.sh.summary
+done
+if test -s $T/scanpid.sh.summary
+then
+	echo --- scanpid.sh output:
+	cat $T/scanpid.sh.summary
+	echo --- mapper output:
+fi
 cat $T/mapper.out
