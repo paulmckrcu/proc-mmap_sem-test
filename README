@@ -1,0 +1,80 @@
+This directory contains a test for /proc scans blocking unrelated
+processes carrying out remapping operations.  This blocking occurs
+because the /proc scan must read-acquire mmap_sem while the remapping
+operations must write-acquire it.  This problem has been seen in the
+wild, so the code in this directory is not intended to demonstrate
+that problem, but rather to test potential fixes.  In this, it succeeds,
+demonstrating the problem in less than a minute on an ordinary system
+as opposed to weeks running production workloads across a large fleet.
+
+Files:
+
+busywait.sh
+	Spin checking /proc/PID/FILE until this path no longer exists.
+	This script does not actually open this file, but instead
+	runs "test -f" on it.
+
+mapper.c
+	Repeatedly map and unmap randomly chosen pages in an anonymous
+	region of memory.
+
+proc-vs-map.sh
+	Spawn mapper on one CPU, then spawn the requested number of
+	instances of busywait.sh (at normaly priority) and scanpid.sh (at
+	"nice -n 15" priority), all pinned onto another CPU.  Both scripts
+	are passed the PID of the mapper process.  Upon completion, the
+	script prints "opmax", the script prints out "opmax", which gives
+	the longest duration of any of the mmap() and munmap() calls.
+
+run-proc-vs-map.sh
+	Repeatedly run proc-vs-map.sh and summarize the output.
+
+scanpid.sh
+	Spin reading /proc/PID/FILE until this path no longer exists.
+	This scripts repeatedly read-acquires PID's mmap_sem.
+
+For example:
+
+	$ ./proc-vs-map.sh 
+	Starting 10-second test at Tue Jan 26 16:24:26 PST 2021.
+	pid 25380's current affinity mask: fff
+	pid 25380's new affinity mask: 2
+	./mapper PID: 25391 duration: 10 region size (pages): 32768
+	./mapper: Map region: 0x7f9d475f8000 duration: 10 nmaps: 688 nunmaps: 685 opmax: 264.089 ms
+
+This says that the longest mmap()/munmap() call took 264 milliseconds.
+There were ten /proc scanners and ten more CPU-bound scripts, all jammed
+onto the same CPU (but a different CPU than the mmap()/munmap() process).
+
+The main proc-vs-map.sh argument of interest is --nbusytasks, which
+specifies the number of /proc scanners and CPU-bound scripts.  Here are
+the results of some quick runs on my laptop:
+
+--nbusytasks	                opmax (milliseconds)
+------------	--------------------------------------------------
+	   0        0.047     0.040    0.131     0.047      0.101
+	   1       49.578   104.035  116.131    26.212     25.078
+	  10      123.543   123.464  131.509   195.945    135.573
+	 100      366.826   326.986  358.730  1205.414   1219.981
+	1000    12020.193* 7704.001 8027.538* 8011.905* 11602.640*
+
+The asterisked numbers represent hangs, where a mapping operation failed
+to complete until the interfering processes were killed.  This happens
+about five seconds after the test was due to complete.  Note that
+adding even one instance of each of busywait.sh and scanpid.sh results
+in more than a two orders of magnitude increase in opmax.
+
+And "./proc-vs-map.sh --help" says this:
+
+	$ ./proc-vs-map.sh --help
+	 --- ./proc-vs-map.sh --help
+	Usage: ./proc-vs-map.sh optional arguments:
+	       --cpubusytasks CPU# (default 2)
+	       --cpumapper CPU# (default 0)
+	       --duration seconds (default 10)
+	       --help
+	       --nbusytasks # (default 20)
+
+These arguments allow controlling the placement of the various processes,
+the duration of the test, and, as noted earlier, the number of /proc
+scanners and CPU-bound scripts.
