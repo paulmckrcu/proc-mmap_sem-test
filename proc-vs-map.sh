@@ -11,25 +11,30 @@
 
 scriptname=$0
 args="$*"
-duration=10
 ncpus="`lscpu | grep '^CPU(s):' | awk '{ print $2 }'`"
 if test "$ncpus" -lt 2
 then
 	echo Need at least two CPUs, and ncpus = $ncpus
 	exit 1
 fi
-nbusytasks=20
+
+echo " --- $scriptname $args"
+
+# Defaults:
 cpubusytasks=2
 cpumapper=0
 cpuscript=1
+duration=10
+nbusytasks=20
 
 usage () {
 	echo "Usage: $scriptname optional arguments:"
-	echo "       --cpubusytasks CPU# (default 2)"
-	echo "       --cpumapper CPU# (default 0)"
-	echo "       --duration seconds (default 10)"
+	echo "       --cpubusytasks CPU# (default $cpubusytasks)"
+	echo "       --cpumapper CPU# (default $cpumapper)"
+	echo "       --cpuscript CPU# (default $cpuscript)"
+	echo "       --duration seconds (default $duration)"
 	echo "       --help"
-	echo "       --nbusytasks # (default 20)"
+	echo "       --nbusytasks # (default $nbusytasks)"
 	exit 1
 }
 
@@ -144,7 +149,10 @@ fi
 # Dump the statistics.
 for i in $T/scanpid.sh.*.out
 do
-	head -n -1 $i > $T/scanpid.sh.summary
+	if test -f $i
+	then
+		head -n -1 $i > $T/scanpid.sh.summary
+	fi
 done
 if test -s $T/scanpid.sh.summary
 then
