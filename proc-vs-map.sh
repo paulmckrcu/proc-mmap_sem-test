@@ -26,6 +26,7 @@ cpumapper=0
 cpuscript=1
 duration=10
 nbusytasks=20
+procfile=smaps
 
 usage () {
 	echo "Usage: $scriptname optional arguments:"
@@ -35,6 +36,7 @@ usage () {
 	echo "       --duration seconds (default $duration)"
 	echo "       --help"
 	echo "       --nbusytasks # (default $nbusytasks)"
+	echo "       --procfile # (default $procfile)"
 	exit 1
 }
 
@@ -85,6 +87,15 @@ do
 		if echo $nbusytasks | grep -q '[^0-9]'
 		then
 			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
+	--procfile)
+		procfile=$2
+		if echo $procfile | grep -q '/' || ! test -f /proc/$$/"$procfile"
+		then
+			echo Error: $1 $2 is not a /proc/PID file.
 			usage
 		fi
 		shift
@@ -144,14 +155,14 @@ do
 done
 
 # Normally, procscan.sh and busywait.sh will stop as soon as the mapper
-# process stops because its /proc/PID/smaps file will vanish.  But if
+# process stops because its /proc/PID/$procfile file will vanish.  But if
 # more convincing is needed, this code does that convincing.
 sleep $duration
-if test -f /proc/$mapper_pid/smaps
+if test -f /proc/$mapper_pid/$procfile
 then
 	echo ./mapper still running, so giving it another five seconds.
 	sleep 5
-	if test -f /proc/$mapper_pid/smaps
+	if test -f /proc/$mapper_pid/$procfile
 	then
 		echo ./mapper STILL running, so kill busy-wait PIDs.
 		kill $busy_pids
