@@ -97,6 +97,18 @@ do
 	shift
 done
 
+if test "$cpumapper" -eq "$cpubusytasks"
+then
+	echo Running ./mapper and the busy scripts on CPU $cpumapper!!!
+	echo '    ' This can result in false positives.
+fi
+
+if test "$cpubusytasks" -eq "$cpuscript"
+then
+	echo Running the main script and the busy scripts on CPU $cpumapper!!!
+	echo '    ' This can result in test hangs.
+fi
+
 T=/tmp/proc-vs-map.sh.$$
 trap 'rm -rf $T' 0 2
 mkdir $T
