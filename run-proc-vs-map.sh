@@ -3,13 +3,13 @@
 #
 # Run a series of proc-vs.map.sh tests and summarize the output.
 #
-# Usage: run-proc-vs-map.sh
+# Usage: run-proc-vs-map.sh [ nsamples ]
 #
 # Copyright (C) Facebook, 2021
 #
 # Authors: Paul E. McKenney <paulmck@kernel.org>
 
-nsamples=5
+nsamples=${1-5}
 
 for ((i = 0; i < $nsamples; i++))
 do
@@ -17,21 +17,32 @@ do
 	do
 		./proc-vs-map.sh --nbusytasks $n
 	done
-done | awk '
+done 2>&1 | awk '
 /^ --- / {
 	nbusytasks = $NF;
-	terminated = " ";
+	terminated = 0;
 }
 
 /Terminated/ {
-	terminated = "* "
+	terminated = 1;
 }
 
 /opmax:/ {
-	a[nbusytasks] = a[nbusytasks] $(NF - 1) terminated;
+	n[nbusytasks]++;
+	a[nbusytasks][n[nbusytasks]] = $(NF - 1);
+	t[nbusytasks] += terminated;
 }
 
 END {
-	for (i in a)
-		print i, a[i];
+	for (i in n) {
+		n1 = asort(a[i]);
+		if (n1 != n[i])
+			print "!!! size mismatch: n[" i "] = " n[i] ", n1 = " n1;
+		h = int(n1 / 2);
+		if (n1 == h * 2)
+			med = (a[i][h + 1] + a[i][h]) / 2;
+		else
+			med = a[i][h + 1];
+		print i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
+	}
 }' | sort -k1n
