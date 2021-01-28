@@ -3,19 +3,59 @@
 #
 # Run a series of proc-vs.map.sh tests and summarize the output.
 #
-# Usage: run-proc-vs-map.sh [ nsamples ]
+# Usage: run-proc-vs-map.sh [ options [ -- proc-vs-map.sh options ]
 #
 # Copyright (C) Facebook, 2021
 #
 # Authors: Paul E. McKenney <paulmck@kernel.org>
 
-nsamples=${1-5}
+scriptname=$0
+args="$*"
+echo "Running $scriptname $args"
+
+# Default!
+nsamples=$1
+
+usage () {
+	echo "Usage: $scriptname optional arguments:"
+	echo "       --nsamples (default $nsamples)"
+	echo "       --help"
+	echo "       -- proc-vs-map.sh options (no default)"
+	exit 1
+}
+
+while test $# -gt 0
+do
+	case "$1" in
+	--nsamples)
+		nsamples=$2
+		if echo $nsamples | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
+	--help|-h)
+		usage
+		;;
+	--)
+		shift
+		break
+		;;
+	*)
+		echo Unknown argument $1
+		usage
+		;;
+	esac
+	shift
+done
 
 for ((i = 0; i < $nsamples; i++))
 do
 	for n in 0 1 10 100 1000
 	do
-		./proc-vs-map.sh --nbusytasks $n
+		./proc-vs-map.sh "$@" --nbusytasks $n
 	done
 done 2>&1 | awk '
 /^ --- / {
