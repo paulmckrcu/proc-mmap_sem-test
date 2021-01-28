@@ -9,6 +9,10 @@ as opposed to weeks running production workloads across a large fleet.
 
 Files:
 
+Makefile
+	Build mapper from mapper.c by default.  To run a short test
+	of run-proc-vs-map.sh, use "make check".
+
 busywait.sh
 	Spin checking /proc/PID/FILE until this path no longer exists.
 	This script does not actually open this file, but instead
@@ -27,7 +31,10 @@ proc-vs-map.sh
 	the longest duration of any of the mmap() and munmap() calls.
 
 run-proc-vs-map.sh
-	Repeatedly run proc-vs-map.sh and summarize the output.
+	Repeatedly run proc-vs-map.sh and statistically summarize the
+	output.  Each line has the number of instances of the busy scripts
+	followed by the median, minimum, and maximum mmap()/munmap()
+	operation duration.
 
 scanpid.sh
 	Spin reading /proc/PID/FILE until this path no longer exists.
