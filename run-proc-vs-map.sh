@@ -74,6 +74,7 @@ done 2>&1 | awk '
 }
 
 END {
+	print "#Busy Median Minimum Maximum";
 	for (i in n) {
 		n1 = asort(a[i]);
 		if (n1 != n[i])
@@ -85,4 +86,4 @@ END {
 			med = a[i][h + 1];
 		print i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
 	}
-}' | sort -k1n
+}' | column -t
