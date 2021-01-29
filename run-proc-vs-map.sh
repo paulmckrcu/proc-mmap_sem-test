@@ -14,7 +14,7 @@ args="$*"
 echo "Running $scriptname $args"
 
 # Default!
-nsamples=$1
+nsamples=7
 
 usage () {
 	echo "Usage: $scriptname optional arguments:"
