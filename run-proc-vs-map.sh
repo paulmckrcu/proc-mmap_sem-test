@@ -74,7 +74,7 @@ done 2>&1 | awk '
 }
 
 END {
-	print "#Busy Median Minimum Maximum";
+	print "#Busy    Median   Minimum   Maximum #Hangs";
 	for (i in n) {
 		n1 = asort(a[i]);
 		if (n1 != n[i])
@@ -84,6 +84,6 @@ END {
 			med = (a[i][h + 1] + a[i][h]) / 2;
 		else
 			med = a[i][h + 1];
-		print i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
+		printf "%5d %9.3f %9.3f %9.3f   %s\n", i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
 	}
-}' | column -t
+}'
