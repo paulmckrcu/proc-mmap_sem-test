@@ -84,6 +84,6 @@ END {
 			med = (a[i][h + 1] + a[i][h]) / 2;
 		else
 			med = a[i][h + 1];
-		printf "%5d %9.3f %9.3f %9.3f   %s\n", i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
+		printf "%5d %9.3f %9.3f %9.3f %6s\n", i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
 	}
 }'
