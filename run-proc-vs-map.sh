@@ -74,6 +74,10 @@ done 2>&1 | awk '
 }
 
 END {
+	print "";
+	print "         Worst-case mmap()/munmap()";
+	print "           latency (milliseconds)";
+	print "         --------------------------";
 	print "#Busy    Median   Minimum   Maximum #Hangs";
 	for (i in n) {
 		n1 = asort(a[i]);
@@ -86,4 +90,5 @@ END {
 			med = a[i][h + 1];
 		printf "%5d %9.3f %9.3f %9.3f %6s\n", i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
 	}
+	print "";
 }'
