@@ -53,24 +53,6 @@ This says that the longest mmap()/munmap() call took 264 milliseconds.
 There were ten /proc scanners and ten more CPU-bound scripts, all jammed
 onto the same CPU (but a different CPU than the mmap()/munmap() process).
 
-The main proc-vs-map.sh argument of interest is --nbusytasks, which
-specifies the number of /proc scanners and CPU-bound scripts.  Here are
-the results of some quick runs on my laptop:
-
---nbusytasks	                opmax (milliseconds)
-------------	--------------------------------------------------
-	   0        0.047     0.040    0.131     0.047      0.101
-	   1       49.578   104.035  116.131    26.212     25.078
-	  10      123.543   123.464  131.509   195.945    135.573
-	 100      366.826   326.986  358.730  1205.414   1219.981
-	1000    12020.193* 7704.001 8027.538* 8011.905* 11602.640*
-
-The asterisked numbers represent hangs, where a mapping operation failed
-to complete until the interfering processes were killed.  This happens
-about five seconds after the test was due to complete.  Note that
-adding even one instance of each of busywait.sh and scanpid.sh results
-in more than a two orders of magnitude increase in opmax.
-
 And "./proc-vs-map.sh --help" says this:
 
 	$ ./proc-vs-map.sh --help
@@ -84,4 +66,42 @@ And "./proc-vs-map.sh --help" says this:
 
 These arguments allow controlling the placement of the various processes,
 the duration of the test, and, as noted earlier, the number of /proc
-scanners and CPU-bound scripts.
+scanners and CPU-bound scripts.  The main proc-vs-map.sh argument of
+interest is --nbusytasks, which specifies the number of /proc scanners
+and CPU-bound scripts.
+
+The run-proc-vs-map.sh script does a series of proc-vs-map.sh runs,
+reducing and pretty-printing the numbers.  It also has help output:
+
+$ ./run-proc-vs-map.sh -h
+Running ./run-proc-vs-map.sh -h
+Usage: ./run-proc-vs-map.sh optional arguments:
+       --nsamples (default 7)
+       --help
+       -- proc-vs-map.sh options (no default)
+
+The usual way to run this script is using "make check" for a short
+run (a few minutes) or "make test" for a longer run (the better part
+of an hour).  Here is "make test" output:
+
+	$ make test
+	This test runs for the better part of an hour.
+	But it does provide statistically defensible values.
+	./run-proc-vs-map.sh --nsamples 24
+	Running ./run-proc-vs-map.sh --nsamples 24
+
+		 Worst-case mmap()/munmap()
+		   latency (milliseconds)
+		 --------------------------
+	#Busy    Median   Minimum   Maximum #Hangs
+	    0     0.097     0.036     0.141       
+	    1    27.296    23.932   116.081       
+	   10   123.514   119.402   179.284       
+	  100   357.379   307.146  1251.496       
+	 1000  8019.600  4114.936 12020.700    *23
+
+The asterisked numbers represent hangs, so that of the 24 1000-#Busy
+runs, 23 hung.  The test was ended by killing the interfering processes,
+after a five second delay after the expected end of the test.  Note that
+adding even one instance of each of busywait.sh and scanpid.sh results
+in more than a two orders of magnitude increase in opmax.
