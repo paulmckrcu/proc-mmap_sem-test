@@ -25,6 +25,7 @@ cpubusytasks=2
 cpumapper=0
 cpuscript=1
 duration=10
+mempar=
 nbusytasks=20
 procfile=smaps
 
@@ -34,7 +35,9 @@ usage () {
 	echo "       --cpumapper CPU# (default $cpumapper)"
 	echo "       --cpuscript CPU# (default $cpuscript)"
 	echo "       --duration seconds (default $duration)"
+	echo "       --gb gigabytes"
 	echo "       --help"
+	echo "       --mb megabytes"
 	echo "       --nbusytasks # (default $nbusytasks)"
 	echo "       --procfile # (default $procfile)"
 	exit 1
@@ -77,6 +80,20 @@ do
 			echo Error: $1 $2 non-numeric.
 			usage
 		fi
+		shift
+		;;
+	--gb|--mb)
+		if test -n "$mempar"
+		then
+			echo Error: Only one instance of --gb and --mb may be specified.
+			usage
+		fi
+		if echo $2 | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		mempar="$1 $2"
 		shift
 		;;
 	--help|-h)
@@ -130,7 +147,7 @@ echo Starting ${duration}-second test at `date`.
 maskmapper="`echo $cpuscript |
 	     awk '{ z = ""; for (i = 1; 4 * i <= $1; i++) z = z "0"; print "0x" 2 ^ ($1 % 4) z }'`"
 taskset -p $maskmapper $$
-taskset -c $cpumapper ./mapper --duration $duration > $T/mapper.out &
+taskset -c $cpumapper ./mapper --duration $duration $mempar > $T/mapper.out &
 mapper_pid=$!
 
 # Launch the /proc scanners at low priority.
