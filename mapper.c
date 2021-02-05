@@ -56,7 +56,7 @@ int remapit(int argc, char *argv[])
 	stoptime = curtime2ns() + duration * 1000LL * 1000LL * 1000LL;
 
 	while (curtime2ns() < stoptime) {
-		offset = random() & (MAP_REGION_SIZE - 1) & ~(pagesize - 1);
+		offset = random() & (region_size - 1) & ~(pagesize - 1);
 		addr = ((char *)mrp) + offset;
 		opbegin = curtime2ns();
 		if (random() & 0x8) {
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 	pagesize = sysconf(_SC_PAGESIZE);
 	printf("%s PID: %d duration: %d region size (pages): %ld\n",
 	       argv[0], getpid(), duration, region_size / pagesize);
-	mrp = mmap(NULL, MAP_REGION_SIZE, PROT_WRITE,
+	mrp = mmap(NULL, region_size, PROT_WRITE,
 		   MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE, -1, 0);
 	if (mrp == MAP_FAILED) {
 		retval = errno;
