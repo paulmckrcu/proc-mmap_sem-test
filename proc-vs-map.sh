@@ -27,7 +27,7 @@ cpuscript=1
 duration=10
 mempar=
 nbusytasks=20
-procfile=smaps
+procfile=maps
 
 usage () {
 	echo "Usage: $scriptname optional arguments:"
@@ -155,7 +155,7 @@ busy_pids=
 i=0
 while test $i -lt $nbusytasks
 do
-	taskset -c $cpubusytasks nice -n 15 ./scanpid.sh $mapper_pid > $T/scanpid.sh.$i.out 2>&1 &
+	taskset -c $cpubusytasks nice -n 15 ./scanpid.sh $mapper_pid $procfile > $T/scanpid.sh.$i.out 2>&1 &
 	busy_pids="$busy_pids $!"
 	i=$((i+1))
 done
