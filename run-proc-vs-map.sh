@@ -57,7 +57,7 @@ do
 	do
 		./proc-vs-map.sh "$@" --nbusytasks $n
 	done
-done 2>&1 | awk '
+done 2>&1 | gawk '
 /^ --- / {
 	nbusytasks = $NF;
 	terminated = 0;
