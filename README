@@ -7,11 +7,17 @@ that problem, but rather to test potential fixes.  In this, it succeeds,
 demonstrating the problem in less than a minute on an ordinary system
 as opposed to weeks running production workloads across a large fleet.
 
+This can be run from virtme given sufficient CPUs and memory, for example:
+
+./virtme-run --cpu 4 --memory 20G --kdir /home/git/linux-maple/ --mods=auto
+
+
 Files:
 
 Makefile
 	Build mapper from mapper.c by default.  To run a short test
-	of run-proc-vs-map.sh, use "make check".
+	of run-proc-vs-map.sh, use "make check".  To run a longer
+	and more statistically defensible test, use "make test".
 
 busywait.sh
 	Spin checking /proc/PID/FILE until this path no longer exists.
