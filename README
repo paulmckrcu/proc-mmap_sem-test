@@ -9,7 +9,18 @@ as opposed to weeks running production workloads across a large fleet.
 
 This can be run from virtme given sufficient CPUs and memory, for example:
 
-./virtme-run --cpu 4 --memory 20G --kdir /home/git/linux-maple/ --mods=auto
+./virtme-run --cpus 4 --memory 20G --kdir /home/git/linux-maple/ --mods=auto
+
+This will give you a command prompt within the resulting guest OS.
+You will need a writeable /tmp, which can be set up using "mount /tmp"
+after adding this line to /etc/fstab:
+
+	tmpfs /tmp tmpfs defaults
+
+Or get with the times and use vng within the kernel source directory,
+for example:
+
+vng --cpus 4 --memory 40G --cwd /home/git/proc-mmap_sem-test --cwd /home/git/proc-mmap_sem-test --exec "make test"
 
 
 Files:
