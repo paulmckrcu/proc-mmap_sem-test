@@ -11,6 +11,12 @@ This can be run from virtme given sufficient CPUs and memory, for example:
 
 ./virtme-run --cpu 4 --memory 20G --kdir /home/git/linux-maple/ --mods=auto
 
+This will give you a command prompt within the resulting guest OS.
+You will need a writeable /tmp, which can be set up using "mount /tmp"
+after adding this line to /etc/fstab:
+
+	tmpfs /tmp tmpfs defaults
+
 
 Files:
 
