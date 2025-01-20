@@ -49,6 +49,7 @@ int remapit(int argc, char *argv[])
 	long long opbegin;
 	long long opdur;
 	long long opmax = 0LL;
+	long long opsum = 0LL;
 	void *retaddr;
 	int retval;
 	long long stoptime;
@@ -85,9 +86,10 @@ int remapit(int argc, char *argv[])
 		opdur = curtime2ns() - opbegin;
 		if (opdur > opmax)
 			opmax = opdur;
+		opsum += opdur;
 	}
-	printf("%s: Map region: %#lx duration: %d nmaps: %ld nunmaps: %ld opmax: %.3f ms\n",
-	       argv[0], (uintptr_t)mrp, duration, nmaps, nunmaps, opmax / 1000. / 1000.);
+	printf("%s: Map region: %#lx duration: %d nmaps: %ld nunmaps: %ld opmax: %.3f ms opavg: %.3f ms\n",
+	       argv[0], (uintptr_t)mrp, duration, nmaps, nunmaps, opmax / 1000. / 1000., opsum / (nmaps + nunmaps) / 1000. / 1000.);
 	return 0;
 }
 
