@@ -53,9 +53,9 @@ done
 
 for ((i = 0; i < $nsamples; i++))
 do
-	for n in 0 1 10 100 1000
+	for n in 0 1 2
 	do
-		./proc-vs-map.sh "$@" --nbusytasks $n
+		./proc-vs-map.sh "$@" --nbusycpus $n
 	done
 done 2>&1 | gawk '
 /^ --- / {
@@ -70,25 +70,27 @@ done 2>&1 | gawk '
 /opmax:/ {
 	n[nbusytasks]++;
 	a[nbusytasks][n[nbusytasks]] = $(NF - 1);
+	m[nbusytasks][n[nbusytasks]] = $(NF - 4);
 	t[nbusytasks] += terminated;
 }
 
 END {
 	print "";
-	print "         Worst-case mmap()/munmap()";
+	print "          Average mmap()/munmap()";
 	print "           latency (milliseconds)";
 	print "         --------------------------";
 	print "#Busy    Median   Minimum   Maximum #Hangs";
 	for (i in n) {
 		n1 = asort(a[i]);
-		if (n1 != n[i])
-			print "!!! size mismatch: n[" i "] = " n[i] ", n1 = " n1;
+		n2 = asort(m[i]);
+		if (n1 != n[i] || n1 != n2)
+			print "!!! size mismatch: n[" i "] = " n[i] ", n1 = " n1, " n2 = " n2;
 		h = int(n1 / 2);
 		if (n1 == h * 2)
 			med = (a[i][h + 1] + a[i][h]) / 2;
 		else
 			med = a[i][h + 1];
-		printf "%5d %9.3f %9.3f %9.3f %6s\n", i, med, a[i][1], a[i][n1], t[i] ? "*" t[i] : "";
+		printf "%5d %9.3f %9.3f %9.3f %6s\n", i, med, a[i][1], m[i][n1], t[i] ? "*" t[i] : "";
 	}
 	print "";
 }'
