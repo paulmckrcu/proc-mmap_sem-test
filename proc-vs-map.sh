@@ -26,7 +26,8 @@ cpumapper=0
 cpuscript=1
 duration=10
 mempar=
-nbusytasks=20
+nbusycpus=1
+nbusytasks=1
 procfile=maps
 
 usage () {
@@ -38,7 +39,8 @@ usage () {
 	echo "       --gb gigabytes"
 	echo "       --help"
 	echo "       --mb megabytes"
-	echo "       --nbusytasks # (default $nbusytasks)"
+	echo "       --nbusycpus # (default $nbusycpus)"
+	echo "       --nbusytasks # (default $nbusytasks per CPU)"
 	echo "       --procfile # (default $procfile)"
 	exit 1
 }
@@ -99,6 +101,15 @@ do
 	--help|-h)
 		usage
 		;;
+	--nbusycpus)
+		nbusycpus=$2
+		if echo $nbusycpus | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
 	--nbusytasks)
 		nbusytasks=$2
 		if echo $nbusytasks | grep -q '[^0-9]'
@@ -125,7 +136,7 @@ do
 	shift
 done
 
-if test "$cpumapper" -eq "$cpubusytasks"
+if test "$cpumapper" -ge "$cpubusytasks" && test "$cpumapper" -lt "$((cpubusytasks+nbusycpus))"
 then
 	echo Running ./mapper and the busy scripts on CPU $cpumapper!!!
 	echo '    ' This can result in false positives.
@@ -152,23 +163,33 @@ mapper_pid=$!
 
 # Launch the /proc scanners at low priority.
 busy_pids=
-i=0
-while test $i -lt $nbusytasks
+curcpu=$cpubusytasks
+while test $curcpu -lt $((cpubusytasks+nbusycpus))
 do
-	taskset -c $cpubusytasks nice -n 15 ./scanpid.sh $mapper_pid $procfile > $T/scanpid.sh.$i.out 2>&1 &
-	busy_pids="$busy_pids $!"
-	i=$((i+1))
+	i=0
+	while test $i -lt $nbusytasks
+	do
+		taskset -c $curcpu nice -n 15 ./scanpid.sh $mapper_pid $procfile > $T/scanpid.sh.$i.out 2>&1 &
+		busy_pids="$busy_pids $!"
+		i=$((i+1))
+	done
+	curcpu=$((curcpu+1))
 done
 
 sleep 1
 
 # Launch higher-priority busy-waiters.
-i=0
-while test $i -lt $nbusytasks
+curcpu=$cpubusytasks
+while test $curcpu -lt $((cpubusytasks+nbusycpus))
 do
-	taskset -c $cpubusytasks ./busywait.sh $mapper_pid &
-	busy_pids="$busy_pids $!"
-	i=$((i+1))
+	i=0
+	while test $i -lt $nbusytasks
+	do
+		taskset -c $curcpu ./busywait.sh $mapper_pid &
+		busy_pids="$busy_pids $!"
+		i=$((i+1))
+	done
+	curcpu=$((curcpu+1))
 done
 
 # Normally, procscan.sh and busywait.sh will stop as soon as the mapper
