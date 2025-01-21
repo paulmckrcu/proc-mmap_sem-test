@@ -20,7 +20,7 @@ after adding this line to /etc/fstab:
 Or get with the times and use vng within the kernel source directory,
 for example:
 
-vng --cpus 4 --memory 40G --cwd /home/git/proc-mmap_sem-test --cwd /home/git/proc-mmap_sem-test --exec "make test"
+vng --cpus 4 --memory 40G --cwd /home/git/proc-mmap_sem-test --exec "make test"
 
 
 Files:
