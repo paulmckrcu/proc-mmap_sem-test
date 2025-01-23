@@ -53,6 +53,7 @@ int remapit(int argc, char *argv[])
 	void *retaddr;
 	int retval;
 	long long stoptime;
+	struct timespec ts = { .tv_sec = 0, .tv_nsec = 10 * 1000L };
 
 	stoptime = curtime2ns() + duration * 1000LL * 1000LL * 1000LL;
 
@@ -87,6 +88,12 @@ int remapit(int argc, char *argv[])
 		if (opdur > opmax)
 			opmax = opdur;
 		opsum += opdur;
+		if (nanosleep(&ts, NULL)) {
+			if (errno != EINTR) {
+				perror("nanosleep");
+				exit(1);
+			}
+		}
 	}
 	printf("%s: Map region: %#lx duration: %d nmaps: %ld nunmaps: %ld opmax: %.3f ms opavg: %.3f ms\n",
 	       argv[0], (uintptr_t)mrp, duration, nmaps, nunmaps, opmax / 1000. / 1000., opsum / (nmaps + nunmaps) / 1000. / 1000.);
