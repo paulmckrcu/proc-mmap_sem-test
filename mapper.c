@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 
 #define MAP_REGION_SIZE (128 * 1024 * 1024) // sysctl vm.max_map_count for larger.
 
@@ -23,6 +24,7 @@ int duration = 10;
 long region_size = MAP_REGION_SIZE;
 void *mrp;
 int pagesize;
+char *waitfile;
 
 // Get current time in nanoseconds since some random time in the past.
 long long curtime2ns(void)
@@ -36,6 +38,17 @@ long long curtime2ns(void)
 		exit(retval);
 	}
 	return curspec.tv_sec * 1000LL * 1000LL * 1000LL + curspec.tv_nsec;
+}
+
+// If --waitfile was specified, wait for that file to be removed.
+void waitfiledeletion(int argc, char *argv[])
+{
+	struct stat statbuf;
+
+	if (!waitfile)
+		return;
+	while (!stat(waitfile, &statbuf))
+		sleep(1);
 }
 
 // Repeatedly unmap and remap pages in the mapped region, tracking the
@@ -115,6 +128,8 @@ void usage(char *progname, const char *format, ...)
 	fprintf(stderr, "\t\tRegion size in gigabytes.\n");
 	fprintf(stderr, "\t--mb\n");
 	fprintf(stderr, "\t\tRegion size in megabytes (Default of 128).\n");
+	fprintf(stderr, "\t--waitfile\n");
+	fprintf(stderr, "\t\tDon't start test until this file is removed.\n");
 	exit(EINVAL);
 }
 
@@ -158,6 +173,8 @@ int main(int argc, char *argv[])
 				      "%s %d too large for address space\n", argv[i - 1], argv[i]);
 			region_size = region_size * 1024 * 1024;
 			size_specified = 1;
+		} else if (strcmp(argv[i], "--waitfile") == 0) {
+			waitfile = argv[++i];
 		} else {
 			usage(argv[0], "Unrecognized argument: %s\n",
 			      argv[i]);
@@ -175,6 +192,7 @@ int main(int argc, char *argv[])
 		perror("initial mmap");
 		return retval;
 	}
+	waitfiledeletion(argc, argv);
 	retval = remapit(argc, argv);
 	return retval;
 }
