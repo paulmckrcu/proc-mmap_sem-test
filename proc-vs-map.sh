@@ -148,17 +148,19 @@ then
 	echo '    ' This can result in test hangs.
 fi
 
-T=/tmp/proc-vs-map.sh.$$
+T="`mktemp -d ${TMPDIR-/tmp}/proc-vs-map.sh.XXXXXX`"
 trap 'rm -rf $T' 0 2
 mkdir $T
 
 echo Starting ${duration}-second test at `date`.
 
 # Launch the mapper.
+W="$T/waitfile"
+touch "$W"
 maskmapper="`echo $cpuscript |
 	     awk '{ z = ""; for (i = 1; 4 * i <= $1; i++) z = z "0"; print "0x" 2 ^ ($1 % 4) z }'`"
 taskset -p $maskmapper $$
-taskset -c $cpumapper ./mapper --duration $duration $mempar > $T/mapper.out &
+taskset -c $cpumapper ./mapper --duration $duration --waitfile "$W" $mempar > $T/mapper.out &
 mapper_pid=$!
 
 # Launch the /proc scanners at low priority.
@@ -191,6 +193,7 @@ do
 	done
 	curcpu=$((curcpu+1))
 done
+rm "$W" # Now that everything is running, tell ./mapper to start testing.
 
 # Normally, procscan.sh and busywait.sh will stop as soon as the mapper
 # process stops because its /proc/PID/$procfile file will vanish.  But if
