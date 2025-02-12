@@ -6,7 +6,10 @@
 #
 # Authors: Paul E. McKenney <paulmck@kernel.org>
 
-all: mapper
+all: busywait mapper
+
+busywait: busywait.c
+	$(CC) -g -Wall -o busywait busywait.c
 
 mapper: mapper.c
 	$(CC) -g -Wall -o mapper mapper.c
