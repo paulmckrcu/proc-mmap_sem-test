@@ -187,7 +187,7 @@ do
 	i=0
 	while test $i -lt $nbusytasks
 	do
-		taskset -c $curcpu ./busywait.sh $mapper_pid &
+		taskset -c $curcpu ./busywait --pid $mapper_pid &
 		busy_pids="$busy_pids $!"
 		i=$((i+1))
 	done

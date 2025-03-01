@@ -36,11 +36,6 @@ busywait.c
 	stat() on it.  If --busywait is non-zero, spin for the specified
 	number of milliseconds and then sleep for a millisecond.
 
-busywait.sh
-	Spin checking /proc/PID/FILE until this path no longer exists.
-	This script does not actually open this file, but instead
-	runs "test -f" on it.
-
 mapper.c
 	Repeatedly map and unmap randomly chosen pages in an anonymous
 	region of memory.
