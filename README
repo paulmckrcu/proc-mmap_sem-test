@@ -30,6 +30,12 @@ Makefile
 	of run-proc-vs-map.sh, use "make check".  To run a longer
 	and more statistically defensible test, use "make test".
 
+busywait.c
+	Spin checking /proc/PID/FILE until this path no longer exists.
+	This program does not actually open this file, but instead runs
+	stat() on it.  If --busywait is non-zero, spin for the specified
+	number of milliseconds and then sleep for a millisecond.
+
 busywait.sh
 	Spin checking /proc/PID/FILE until this path no longer exists.
 	This script does not actually open this file, but instead
