@@ -21,6 +21,7 @@ fi
 echo " --- $scriptname $args"
 
 # Defaults:
+busyduration=0
 cpubusytasks=2
 cpumapper=0
 cpuscript=1
@@ -32,6 +33,7 @@ procfile=maps
 
 usage () {
 	echo "Usage: $scriptname optional arguments:"
+	echo "       --busyduration millseconds (default $busyduration)"
 	echo "       --cpubusytasks CPU# (default $cpubusytasks)"
 	echo "       --cpumapper CPU# (default $cpumapper)"
 	echo "       --cpuscript CPU# (default $cpuscript)"
@@ -48,6 +50,15 @@ usage () {
 while test $# -gt 0
 do
 	case "$1" in
+	--busyduration)
+		busyduration=$2
+		if echo $busyduration | grep -q '[^0-9]'
+		then
+			echo Error: $1 $2 non-numeric.
+			usage
+		fi
+		shift
+		;;
 	--cpubusytasks)
 		cpubusytasks=$2
 		if echo $cpubusytasks | grep -q '[^0-9]'
@@ -187,7 +198,7 @@ do
 	i=0
 	while test $i -lt $nbusytasks
 	do
-		taskset -c $curcpu ./busywait --pid $mapper_pid &
+		taskset -c $curcpu ./busywait --busyduration $busyduration --pid $mapper_pid &
 		busy_pids="$busy_pids $!"
 		i=$((i+1))
 	done
@@ -195,7 +206,7 @@ do
 done
 rm "$W" # Now that everything is running, tell ./mapper to start testing.
 
-# Normally, procscan.sh and busywait.sh will stop as soon as the mapper
+# Normally, procscan.sh and busywait will stop as soon as the mapper
 # process stops because its /proc/PID/$procfile file will vanish.  But if
 # more convincing is needed, this code does that convincing.
 sleep $duration
