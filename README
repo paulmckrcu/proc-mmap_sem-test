@@ -48,6 +48,13 @@ proc-vs-map.sh
 	script prints "opmax", the script prints out "opmax", which gives
 	the longest duration of any of the mmap() and munmap() calls.
 
+README	You are reading it!
+
+run-latency.sh
+	Runs run-proc-vs-map.sh repeatedly, varying --busyduration.
+	The data generated for Suren used i=2.	The data collected
+	focused only on n=2 from run-proc-vs-map.sh.
+
 run-proc-vs-map.sh
 	Repeatedly run proc-vs-map.sh and statistically summarize the
 	output.  Each line has the number of instances of the busy scripts
@@ -57,6 +64,13 @@ run-proc-vs-map.sh
 scanpid.sh
 	Spin reading /proc/PID/FILE until this path no longer exists.
 	This scripts repeatedly read-acquires PID's mmap_sem.
+
+data/
+	Data collected, including that used for April 2025 evaluation
+	of Suren's patch series.
+
+data/plots/plots.sh
+	Script to run gnuplot on the collected data.
 
 For example:
 
