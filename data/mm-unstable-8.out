@@ -1,0 +1,19 @@
+This test runs for the better part of an hour.
+But it does provide statistically defensible values.
+./run-proc-vs-map.sh --nsamples 24
+Running ./run-proc-vs-map.sh --nsamples 24
+
+          Average mmap()/munmap()
+           latency (milliseconds)
+         --------------------------
+#Busy    Median   Minimum   Maximum #Hangs
+    0     0.005     0.004     0.346       
+    1     0.052     0.049    60.947       
+    2     0.234     0.133    57.967       
+    3     0.281     0.179    58.954       
+    4     0.254     0.071    84.988       
+    5     0.240     0.121    86.027       
+    6     0.379     0.336    85.017       
+    7     0.496     0.439    68.064       
+    8     0.526     0.460    67.016       
+

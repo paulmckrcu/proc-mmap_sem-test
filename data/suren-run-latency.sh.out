@@ -1,0 +1,35 @@
+./run-proc-vs-map.sh --nsamples 24 -- --busyduration 1
+Running ./run-proc-vs-map.sh --nsamples 24 -- --busyduration 1
+
+          Average mmap()/munmap()
+           latency (milliseconds)
+         --------------------------
+#Busy    Median   Minimum   Maximum #Hangs
+    0     0.004     0.004     0.420       
+    1     0.006     0.006     0.934       
+    2     0.007     0.007     3.445       
+
+./run-proc-vs-map.sh --nsamples 24 -- --busyduration 2
+Running ./run-proc-vs-map.sh --nsamples 24 -- --busyduration 2
+
+          Average mmap()/munmap()
+           latency (milliseconds)
+         --------------------------
+#Busy    Median   Minimum   Maximum #Hangs
+    0     0.005     0.005     0.421       
+    1     0.006     0.006     0.802       
+    2     0.007     0.007     0.613       
+
+./run-proc-vs-map.sh --nsamples 24 -- --busyduration 5
+Running ./run-proc-vs-map.sh --nsamples 24 -- --busyduration 5
+
+          Average mmap()/munmap()
+           latency (milliseconds)
+         --------------------------
+#Busy    Median   Minimum   Maximum #Hangs
+    0     0.005     0.005    48.127       
+    1     0.006     0.005     0.372       
+    2     0.007     0.005     0.400       
+
+./run-proc-vs-map.sh --nsamples 24 -- --busyduration 10
+Running ./run-proc-vs-map.sh --nsamples 24 -- --busyduration 10
