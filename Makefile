@@ -21,4 +21,4 @@ check: mapper
 test: mapper
 	@echo This test runs for the better part of an hour.
 	@echo But it does provide statistically defensible values.
-	./run-proc-vs-map.sh --nsamples 24
+	./run-latency.sh
