@@ -58,7 +58,7 @@ done
 
 for ((i = 0; i < $nsamples; i++))
 do
-	for n in 0 1 2
+	for n in 2
 	do
 		./proc-vs-map.sh "$@" --nbusycpus $n
 	done
